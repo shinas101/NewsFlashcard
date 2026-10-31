@@ -89,10 +89,11 @@ html, body {
   margin: 0 auto;
   perspective: 1100px;
   perspective-origin: center center;
+  transform-style: preserve-3d;
   touch-action: none !important;
 }
 
-/* A card is a tactile slab with crisp borders and fluid step-forward */
+/* A card is a tactile slab with crisp borders, physical deck shadows, and fluid step-forward */
 .csw-card {
   position: absolute;
   inset: 0;
@@ -101,12 +102,15 @@ html, body {
   background-color: var(--fill-slab, #9e3547);
   color: var(--fill-on, #000000);
   box-shadow: 
-    0 0 0 1px rgba(0, 0, 0, 0.65),
-    0 -5px 16px -2px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(0, 0, 0, 0.7),
+    0 -6px 18px -2px rgba(0, 0, 0, 0.55),
     0 16px 45px -8px rgba(0, 0, 0, 0.95);
-  border-top: 1px solid rgba(255, 255, 255, 0.22);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  border-right: 1px solid rgba(0, 0, 0, 0.35);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.55);
   transform: var(--t);
+  transform-origin: center center;
   transition: transform var(--dur-medium) var(--ease-out), opacity var(--dur-medium) var(--ease-out);
   backface-visibility: hidden;
   will-change: transform;

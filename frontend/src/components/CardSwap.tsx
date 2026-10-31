@@ -13,16 +13,26 @@ import { RotateCcw } from "lucide-react";
    Dragging or flicking flings the top card cleanly away,
    and the next card smoothly ascends to the top of the deck. */
 
+// Desktop parameters: wide horizontal card deck (640x370)
 const DESKTOP_W = 680;
 const DESKTOP_H = 460;
 const DESKTOP_CW = 640;
 const DESKTOP_CH = 370;
 const DESKTOP_STEP_Y = 16;
 const DESKTOP_STEP_Z = 42;
+const DESKTOP_ROTATIONS = [0, 1.4, -1.8, 1.1, -1.3];
+const DESKTOP_OFFSET_X = [0, 4, -4, 3, -3];
+const DESKTOP_SCALE_STEP = 0.035;
 
-// Subtle micro-rotations so background cards visibly peek out on all sides
-const STACK_ROTATIONS = [0, 1.4, -1.8, 1.1, -1.3];
-const STACK_OFFSET_X = [0, 4, -4, 3, -3];
+// Mobile parameters: tall phone card deck (~340x460)
+// Calibrated so that on narrower, taller mobile viewports, the stacked cards
+// behind visibly fan out with organic micro-rotations and step upward at the top,
+// creating the exact same physical, tactile stack illusion as the desktop view.
+const MOBILE_STEP_Y = 16;
+const MOBILE_STEP_Z = 34;
+const MOBILE_ROTATIONS = [0, 2.4, -2.6, 2.0, -2.2];
+const MOBILE_OFFSET_X = [0, 6, -6, 5, -5];
+const MOBILE_SCALE_STEP = 0.020;
 
 // ── Source → domain map for favicons ──────────────────────
 const SOURCE_DOMAINS: Record<string, string> = {
@@ -198,12 +208,10 @@ export const CardSwap = forwardRef<CardSwapHandle, CardSwapProps>(function CardS
   const isMobile = windowDimensions.width < 640;
 
   // Responsive card dimension computation
-  const cardWidth = propCW || (isMobile ? Math.min(windowDimensions.width - 28, 360) : DESKTOP_CW);
-  const cardHeight = propCH || (isMobile ? Math.min(windowDimensions.height - 150, 480) : DESKTOP_CH);
-  const stageWidth = propW || (isMobile ? cardWidth : DESKTOP_W);
-  const stageHeight = propH || (isMobile ? cardHeight + 36 : DESKTOP_H);
-  const stepY = isMobile ? 12 : DESKTOP_STEP_Y;
-  const stepZ = isMobile ? 30 : DESKTOP_STEP_Z;
+  const cardWidth = propCW || (isMobile ? Math.min(windowDimensions.width - 32, 350) : DESKTOP_CW);
+  const cardHeight = propCH || (isMobile ? Math.min(windowDimensions.height - 170, 460) : DESKTOP_CH);
+  const stageWidth = propW || (isMobile ? cardWidth + 24 : DESKTOP_W);
+  const stageHeight = propH || (isMobile ? cardHeight + 52 : DESKTOP_H);
 
   // Sync order if external cards change
   useEffect(() => {
@@ -231,11 +239,19 @@ export const CardSwap = forwardRef<CardSwapHandle, CardSwapProps>(function CardS
 
   // Physical stack slot transform with organic micro-angles and depth steps
   const slot = (k: number) => {
-    const scale = Math.max(0.86, 1 - k * 0.035);
+    const scaleStep = isMobile ? MOBILE_SCALE_STEP : DESKTOP_SCALE_STEP;
+    const minScale = isMobile ? 0.90 : 0.86;
+    const scale = Math.max(minScale, 1 - k * scaleStep);
+
+    const stepY = isMobile ? MOBILE_STEP_Y : DESKTOP_STEP_Y;
+    const stepZ = isMobile ? MOBILE_STEP_Z : DESKTOP_STEP_Z;
+    const rotations = isMobile ? MOBILE_ROTATIONS : DESKTOP_ROTATIONS;
+    const offsetsX = isMobile ? MOBILE_OFFSET_X : DESKTOP_OFFSET_X;
+
     const y = -k * stepY;
     const z = -k * stepZ;
-    const rot = STACK_ROTATIONS[k] || 0;
-    const x = STACK_OFFSET_X[k] || 0;
+    const rot = rotations[k] || 0;
+    const x = offsetsX[k] || 0;
     return `translate3d(${x}px, ${y}px, ${z}px) scale(${scale}) rotate(${rot}deg)`;
   };
 
@@ -511,7 +527,7 @@ export const CardSwap = forwardRef<CardSwapHandle, CardSwapProps>(function CardS
           style={{
             width: cardWidth,
             height: cardHeight,
-            marginTop: isMobile ? 24 : 36,
+            marginTop: isMobile ? 38 : 36,
           }}
         >
           {activeCards.map((c, originalIndex) => {
@@ -592,6 +608,12 @@ export const CardSwap = forwardRef<CardSwapHandle, CardSwapProps>(function CardS
               </div>
             );
           })}
+        </div>
+
+        {/* Visual stack indicator underneath the deck */}
+        <div className="mt-4 sm:mt-5 flex items-center justify-center gap-2 text-zinc-400 text-[11px] font-mono tracking-wider select-none pointer-events-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#9e3547] animate-pulse" />
+          <span>{order.length} cards in stack • Swipe or tap to draw next</span>
         </div>
       </div>
     </div>
