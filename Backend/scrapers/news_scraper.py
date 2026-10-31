@@ -21,7 +21,7 @@ from urllib3.util.retry import Retry
 
 from config import SCRAPER_MAX_WORKERS, SCRAPER_TIMEOUT
 
-logger = logging.getLogger("scraper")
+logger = logging.getLogger("scrapers.news")
 
 # Try fast HTML parser selectolax
 try:

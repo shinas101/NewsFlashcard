@@ -8,7 +8,7 @@ import logging
 from collections import Counter
 from typing import List, Dict, Any, Set, Tuple
 
-logger = logging.getLogger("summarizer")
+logger = logging.getLogger("summarizers.extractive")
 
 # Standard English stop words
 STOP_WORDS: Set[str] = {

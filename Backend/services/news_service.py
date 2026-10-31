@@ -10,12 +10,12 @@ import threading
 import logging
 from typing import Dict, Any, List, Optional
 
-from scraper import scrape_news
-from t5_summarizer import summarize_with_t5
-from cache_utils import cache_get, cache_set
+from scrapers import scrape_news
+from summarizers import summarize_with_t5
+from storage import cache_get, cache_set
 from config import SCRAPED_TTL, CACHE_LONG_TTL
 
-logger = logging.getLogger("news_service")
+logger = logging.getLogger("services.news")
 
 # Concurrency control per language
 _refresh_locks: Dict[str, threading.Lock] = {

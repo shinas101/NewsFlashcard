@@ -16,7 +16,7 @@ from typing import Any, Optional, Union, List, Dict
 
 from config import REDIS_URL, REDIS_DB_FILE, SCRAPED_TTL
 
-logger = logging.getLogger("cache_utils")
+logger = logging.getLogger("storage.cache")
 
 
 class RedisCache:

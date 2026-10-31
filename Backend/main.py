@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from config import PORT, LOG_LEVEL, BASE_DIR
-from news_service import get_final_news
+from services import get_final_news
 
 # Centralized Logging Setup
 logging.basicConfig(

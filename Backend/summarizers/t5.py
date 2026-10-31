@@ -20,11 +20,11 @@ else:
 
 os.environ.setdefault("HF_HOME", CACHE_DIR)
 
-from cache_utils import cache_get, cache_set, generate_news_hash
-from summarizer import extract_summary
+from storage import cache_get, cache_set, generate_news_hash
+from summarizers.extractive import extract_summary
 from config import T5_MODEL_ID, T5_BATCH_SIZE, CACHE_LONG_TTL
 
-logger = logging.getLogger("t5_summarizer")
+logger = logging.getLogger("summarizers.t5")
 
 _MODEL = None
 _TOKENIZER = None
