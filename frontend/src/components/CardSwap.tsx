@@ -609,12 +609,6 @@ export const CardSwap = forwardRef<CardSwapHandle, CardSwapProps>(function CardS
             );
           })}
         </div>
-
-        {/* Visual stack indicator underneath the deck */}
-        <div className="mt-4 sm:mt-5 flex items-center justify-center gap-2 text-zinc-400 text-[11px] font-mono tracking-wider select-none pointer-events-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#9e3547] animate-pulse" />
-          <span>{order.length} cards in stack • Swipe or tap to draw next</span>
-        </div>
       </div>
     </div>
   );
