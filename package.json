@@ -1,0 +1,10 @@
+{
+  "name": "news-flipcard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tactile 3D News FlipCard with FastAPI backend",
+  "scripts": {
+    "build": "cd frontend && npm install --include=dev && npm run build"
+  }
+}
+

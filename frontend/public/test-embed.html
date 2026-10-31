@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>External Website - News FlipCard Widget Demo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0f1115;
+      color: #e6e8eb;
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header {
+      border-bottom: 1px solid #2d3139;
+      padding-bottom: 20px;
+      margin-bottom: 35px;
+    }
+    h1 {
+      font-size: 26px;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+    p.lead {
+      color: #9ba1ad;
+      font-size: 15px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      background: #9e3547;
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 30px 0 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .code-box {
+      background: #181a20;
+      border: 1px solid #2d3139;
+      border-radius: 8px;
+      padding: 14px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #4ade80;
+      overflow-x: auto;
+      margin-bottom: 18px;
+    }
+    .widget-container {
+      background: #14161d;
+      border: 1px solid #272a34;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    footer {
+      margin-top: 50px;
+      border-top: 1px solid #2d3139;
+      padding-top: 20px;
+      font-size: 13px;
+      color: #656d78;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">External Host Simulation</span>
+      <h1>TechDaily News Blog (External Website)</h1>
+      <p class="lead">This page simulates any third-party external website embedding the News FlipCard component.</p>
+    </header>
+
+    <!-- Method 1: Drop-in Script Embed -->
+    <div class="section-title">
+      <span>Method 1: Drop-in Script Embed (Recommended)</span>
+    </div>
+    <div class="code-box">&lt;div id="news-flipcard" data-lang="en" data-theme="dark" data-height="520px"&gt;&lt;/div&gt;
+&lt;script src="/embed.js"&gt;&lt;/script&gt;</div>
+    <div class="widget-container">
+      <div id="news-flipcard" data-lang="en" data-theme="dark" data-height="500px"></div>
+    </div>
+
+    <!-- Method 2: Standard Iframe Embed -->
+    <div class="section-title">
+      <span>Method 2: Clean Iframe Embed (Malayalam Edition)</span>
+    </div>
+    <div class="code-box">&lt;iframe src="/embed?lang=ml&amp;theme=dark" width="100%" height="520" frameborder="0" style="border:none; border-radius:12px;"&gt;&lt;/iframe&gt;</div>
+    <div class="widget-container">
+      <iframe src="/embed?lang=ml&theme=dark" width="100%" height="500" frameborder="0" style="border:none; border-radius:12px; display:block;"></iframe>
+    </div>
+
+    <footer>
+      Flash News FlipCard Component • Cross-Origin Supported • Zero Config
+    </footer>
+  </div>
+
+  <!-- Load Drop-in Script -->
+  <script src="/embed.js"></script>
+</body>
+</html>
+

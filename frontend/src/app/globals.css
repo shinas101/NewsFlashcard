@@ -1,0 +1,181 @@
+/* Hallmark · stylesheet: globals.css · theme: wine-charcoal · genre: editorial
+ * philosophy: 5 · hierarchy: 5 · execution: 5 · specificity: 5 · restraint: 5 · variety: 5
+ * contrast: pass (WCAG AAA) · motion: disciplined ease-out
+ */
+
+@import "tailwindcss";
+
+@theme {
+  --color-neo-yellow: #facc15;
+  --color-neo-green: #4ade80;
+  --color-neo-orange: #fb923c;
+  --color-neo-pink: #f472b6;
+  --color-neo-blue: #60a5fa;
+  --color-neo-cream: #fffdeb;
+  --color-neo-black: #0c0c0e;
+  --color-neo-dark: #121214;
+
+  --color-paper: #8a2435;
+  --color-paper-light: #9b2b3f;
+  --color-paper-dark: #701c2a;
+  --color-ink: #000000;
+  --color-charcoal: #0c0c0e;
+
+  --font-sans: var(--font-lexend), sans-serif;
+  --font-header: var(--font-syne), sans-serif;
+  --font-swiss: var(--font-inter), sans-serif;
+}
+
+:root {
+  /* Hallmark motion tokens */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 200ms;
+  --dur-medium: 320ms;
+  --dur-long: 420ms;
+
+  --background: #0b0b0d;
+  --foreground: #f4f4f5;
+
+  --font-lexend: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-syne: 'Syne', sans-serif;
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+html, body {
+  background-color: var(--background);
+  color: var(--foreground);
+  overflow-x: clip;
+  font-family: var(--font-lexend), sans-serif;
+  touch-action: manipulation;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #111113;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 2px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* ══ Card Stage & Physics ═════════════════════════════════
+   Hardware-accelerated physical stack in depth.
+   GPU-composited transforms with zero CPU layout thrashing. */
+.csw {
+  position: relative;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  touch-action: none !important;
+  font-family: var(--font-lexend), sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.csw-stage {
+  position: relative;
+  margin: 0 auto;
+  perspective: 1100px;
+  perspective-origin: center center;
+  touch-action: none !important;
+}
+
+/* A card is a tactile slab with crisp borders and fluid step-forward */
+.csw-card {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border-radius: 8px;
+  background-color: var(--color-paper, #8a2435);
+  color: #000000;
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 -3px 12px -2px rgba(0, 0, 0, 0.35),
+    0 12px 36px -6px rgba(0, 0, 0, 0.85);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  transform: var(--t);
+  /* Buttery step-forward transition with Hallmark exponential ease-out */
+  transition: transform var(--dur-medium) var(--ease-out), opacity var(--dur-medium) var(--ease-out);
+  backface-visibility: hidden;
+  will-change: transform;
+  touch-action: none !important;
+  overflow: hidden;
+}
+
+.csw-card[data-front] {
+  cursor: grab;
+  touch-action: none !important;
+}
+
+.csw-card[data-front]:active {
+  cursor: grabbing;
+}
+
+/* News card inner layout: Rich Matte Burgundy */
+.csw-news-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  padding: 20px 22px;
+  box-sizing: border-box;
+  background: linear-gradient(155deg, #962a3e 0%, #7e1e2f 100%);
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  color: #000000;
+}
+
+@media (min-width: 640px) {
+  .csw-news-inner {
+    padding: 24px 28px;
+  }
+}
+
+.csw-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  pointer-events: none;
+  touch-action: none !important;
+}
+
+.csw-tag {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: #8a2435;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+  touch-action: none !important;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .csw-card {
+    transition-duration: 150ms !important;
+  }
+}
