@@ -1,29 +1,96 @@
+"""
+High-Performance News Scraper & Decoder
+- Parallel multi-threaded extraction of Indian National and Malayalam news.
+- Thread-safe HTTP connection pooling (requests.Session + HTTPAdapter).
+- Fast HTML parsing with selectolax/lxml fallback.
+- Pre-compiled regex patterns for minimal CPU overhead.
+"""
 import json
 import time
 import re
-from typing import Optional
+import logging
+from typing import Optional, List, Dict, Any
 from urllib.parse import quote, urlparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import feedparser
 from bs4 import BeautifulSoup
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
+from config import SCRAPER_MAX_WORKERS, SCRAPER_TIMEOUT
+
+logger = logging.getLogger("scraper")
+
+# Try fast HTML parser selectolax
 try:
     from selectolax.lexbor import LexborHTMLParser as HTMLParser
 except ImportError:
-    from selectolax.parser import HTMLParser
+    try:
+        from selectolax.parser import HTMLParser
+    except ImportError:
+        HTMLParser = None
 
+# Configure reusable, thread-safe connection-pooled session
+_session = requests.Session()
+_retries = Retry(
+    total=2,
+    backoff_factor=0.3,
+    status_forcelist=[500, 502, 503, 504],
+    raise_on_status=False
+)
+_adapter = HTTPAdapter(
+    pool_connections=SCRAPER_MAX_WORKERS * 2,
+    pool_maxsize=SCRAPER_MAX_WORKERS * 4,
+    max_retries=_retries
+)
+_session.mount("https://", _adapter)
+_session.mount("http://", _adapter)
+
+DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
+)
+_session.headers.update({"User-Agent": DEFAULT_USER_AGENT})
+
+# Curl-cffi optional bypass for advanced anti-bot protections
 try:
     from curl_cffi import requests as cffi_requests
-    def fetch_page_html(url: str, timeout: int = 10) -> str:
+    def fetch_page_html(url: str, timeout: int = SCRAPER_TIMEOUT) -> str:
         return cffi_requests.get(url, impersonate="chrome120", timeout=timeout).text
 except ImportError:
-    def fetch_page_html(url: str, timeout: int = 10) -> str:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
-        }
-        return requests.get(url, headers=headers, timeout=timeout).text
+    def fetch_page_html(url: str, timeout: int = SCRAPER_TIMEOUT) -> str:
+        res = _session.get(url, timeout=timeout)
+        return res.text
+
+
+# Pre-compiled regex constants
+_RE_GARBAGE = re.compile(
+    r"(please enable js|disable any ad.?blocker"
+    r"|you don.t have any active subscription|account subscription benefits"
+    r"|share your thoughts in the comments|be respectful.*?community guidelines"
+    r"|toi community guidelines|unlock these with subscription"
+    r"|need help with your subscription)",
+    re.I | re.DOTALL,
+)
+
+_RE_CONTAINER_CLASSES = re.compile(
+    r"(article-body|story-body|article__body|story__content|story_details|entry-content|normal|main-content)",
+    re.I
+)
+
+_RE_AD_PROMO = re.compile(
+    r"(ad|promo|social|author|caption|copyright|disclaimer)",
+    re.I
+)
+
+_RE_DISCARD_STARTS = re.compile(
+    r"^(also read|read also|click here|subscribe|advertisement|follow us|download the app|disclaimer:|copyright|photo:)",
+    re.I
+)
+
+_RE_MALAYALAM_CHARS = re.compile(r"[^\u0D00-\u0D7F\s]")
 
 
 def get_base64_str(source_url: str) -> dict:
@@ -38,52 +105,69 @@ def get_base64_str(source_url: str) -> dict:
             return {"status": True, "base64_str": path[-1]}
         return {"status": False, "message": "Invalid Google News URL format."}
     except Exception as e:
+        logger.debug("get_base64_str error for %s: %s", source_url, e)
         return {"status": False, "message": f"Error in get_base64_str: {str(e)}"}
 
 
 def get_decoding_params(base64_str: str) -> dict:
     try:
         url = f"https://news.google.com/articles/{base64_str}"
-        response = requests.get(url)
+        response = _session.get(url, timeout=6)
         response.raise_for_status()
 
-        parser = HTMLParser(response.text)
-        data_element = parser.css_first("c-wiz > div[jscontroller]")
-        if data_element is None:
-            return {
-                "status": False,
-                "message": "Failed to fetch data attributes from Google News with the articles URL.",
-            }
-
-        return {
-            "status": True,
-            "signature": data_element.attributes.get("data-n-a-sg"),
-            "timestamp": data_element.attributes.get("data-n-a-ts"),
-            "base64_str": base64_str,
-        }
-    except requests.exceptions.RequestException:
-        try:
-            url = f"https://news.google.com/rss/articles/{base64_str}"
-            response = requests.get(url)
-            response.raise_for_status()
-
+        if HTMLParser:
             parser = HTMLParser(response.text)
             data_element = parser.css_first("c-wiz > div[jscontroller]")
-            if data_element is None:
+            if data_element is not None:
                 return {
-                    "status": False,
-                    "message": "Failed to fetch data attributes from Google News with the RSS URL.",
+                    "status": True,
+                    "signature": data_element.attributes.get("data-n-a-sg"),
+                    "timestamp": data_element.attributes.get("data-n-a-ts"),
+                    "base64_str": base64_str,
+                }
+        else:
+            soup = BeautifulSoup(response.text, "html.parser")
+            data_div = soup.select_one("c-wiz > div[jscontroller]")
+            if data_div is not None:
+                return {
+                    "status": True,
+                    "signature": data_div.get("data-n-a-sg"),
+                    "timestamp": data_div.get("data-n-a-ts"),
+                    "base64_str": base64_str,
                 }
 
-            return {
-                "status": True,
-                "signature": data_element.attributes.get("data-n-a-sg"),
-                "timestamp": data_element.attributes.get("data-n-a-ts"),
-                "base64_str": base64_str,
-            }
-        except Exception as rss_err:
-            return {"status": False, "message": str(rss_err)}
+        # Fallback to RSS articles URL
+        url_rss = f"https://news.google.com/rss/articles/{base64_str}"
+        response_rss = _session.get(url_rss, timeout=6)
+        response_rss.raise_for_status()
+
+        if HTMLParser:
+            parser = HTMLParser(response_rss.text)
+            data_element = parser.css_first("c-wiz > div[jscontroller]")
+            if data_element is not None:
+                return {
+                    "status": True,
+                    "signature": data_element.attributes.get("data-n-a-sg"),
+                    "timestamp": data_element.attributes.get("data-n-a-ts"),
+                    "base64_str": base64_str,
+                }
+        else:
+            soup = BeautifulSoup(response_rss.text, "html.parser")
+            data_div = soup.select_one("c-wiz > div[jscontroller]")
+            if data_div is not None:
+                return {
+                    "status": True,
+                    "signature": data_div.get("data-n-a-sg"),
+                    "timestamp": data_div.get("data-n-a-ts"),
+                    "base64_str": base64_str,
+                }
+
+        return {
+            "status": False,
+            "message": "Failed to fetch data attributes from Google News.",
+        }
     except Exception as e:
+        logger.debug("get_decoding_params failed for %s: %s", base64_str, e)
         return {"status": False, "message": str(e)}
 
 
@@ -96,14 +180,19 @@ def decode_url(signature: str, timestamp: str, base64_str: str) -> dict:
         ]
         headers = {
             "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
         }
-        response = requests.post(url, headers=headers, data=f"f.req={quote(json.dumps([[payload]]))}")
+        response = _session.post(
+            url,
+            headers=headers,
+            data=f"f.req={quote(json.dumps([[payload]]))}",
+            timeout=6
+        )
         response.raise_for_status()
         parsed_data = json.loads(response.text.split("\n\n")[1])[:-2]
         decoded_url = json.loads(parsed_data[0][2])[1]
         return {"status": True, "decoded_url": decoded_url}
     except Exception as e:
+        logger.debug("decode_url error for %s: %s", base64_str, e)
         return {"status": False, "message": str(e)}
 
 
@@ -126,6 +215,7 @@ def decode_google_news_url(source_url: str, interval: Optional[int] = None) -> d
             time.sleep(interval)
         return decoded_url_response
     except Exception as e:
+        logger.debug("Failed decoding Google News URL (%s): %s", source_url, e)
         return {"status": False, "message": str(e)}
 
 
@@ -137,30 +227,27 @@ def extract_article_content(url: str, source: str = "") -> str:
         return ""
 
     try:
-        html = fetch_page_html(url, timeout=10)
+        html = fetch_page_html(url, timeout=SCRAPER_TIMEOUT)
         if not html:
             return ""
 
         soup = BeautifulSoup(html, "lxml")
 
-        # Prefer structured description from JSON‑LD if available (e.g., The Hindu)
+        # Prefer structured description from JSON-LD if available (e.g. The Hindu, Indian Express)
         description = None
         for script in soup.find_all('script', type='application/ld+json'):
             try:
                 data = json.loads(script.string or '')
-                # data may be a list or dict
-                if isinstance(data, list):
-                    candidates = data
-                else:
-                    candidates = [data]
+                candidates = data if isinstance(data, list) else [data]
                 for entry in candidates:
-                    if entry.get('@type') == 'NewsArticle' and entry.get('description'):
+                    if entry.get('@type') in ('NewsArticle', 'Article') and entry.get('description'):
                         description = entry['description']
                         break
                 if description:
                     break
             except Exception:
                 continue
+
         if description:
             return description.strip()
 
@@ -168,7 +255,7 @@ def extract_article_content(url: str, source: str = "") -> str:
         for unwanted in soup(["script", "style", "nav", "header", "footer", "aside", "figure", "noscript", "form", "button", "svg", "iframe"]):
             unwanted.decompose()
 
-        # Specific Malayalam ... (rest unchanged)
+        # Specific Malayalam Portal Handlers
         if source == "Manorama Online":
             paras = [p.get_text(" ", strip=True) for p in soup.find_all("p") if p.get_text(strip=True) and p.get("class") is None]
             if paras:
@@ -176,7 +263,7 @@ def extract_article_content(url: str, source: str = "") -> str:
         elif source == "Mathrubhumi":
             body = soup.find("div", {"class": "article-body"})
             if body:
-                return " ".join(re.sub(r"[^\u0D00-\u0D7F\s]", "", body.get_text(" ", strip=True)).split()[:80])
+                return " ".join(_RE_MALAYALAM_CHARS.sub("", body.get_text(" ", strip=True)).split()[:80])
         elif source == "Asianet News Malayalam":
             body = soup.find("div", {"itemprop": "articleBody"})
             if body:
@@ -184,11 +271,11 @@ def extract_article_content(url: str, source: str = "") -> str:
         elif source == "News18 Malayalam":
             body = soup.find("div", {"class": "normal"})
             if body:
-                return " ".join(re.sub(r"[^\u0D00-\u0D7F\s]", "", body.get_text(" ", strip=True)).split()[:80])
+                return " ".join(_RE_MALAYALAM_CHARS.sub("", body.get_text(" ", strip=True)).split()[:80])
         elif source == "Madhyamam":
             body = soup.find("div", {"class": "story"})
             if body:
-                return " ".join(re.sub(r"[^\u0D00-\u0D7F\s]", "", body.get_text(" ", strip=True)).split()[:80])
+                return " ".join(_RE_MALAYALAM_CHARS.sub("", body.get_text(" ", strip=True)).split()[:80])
 
         # Dynamic containers for Indian & general news
         container = (
@@ -196,7 +283,7 @@ def extract_article_content(url: str, source: str = "") -> str:
             soup.find(id="ins_storybody") or
             soup.find("div", class_="ins_storybody") or
             soup.find("article") or
-            soup.find("div", class_=re.compile(r"(article-body|story-body|article__body|story__content|story_details|entry-content|normal|main-content)", re.I)) or
+            soup.find("div", class_=_RE_CONTAINER_CLASSES) or
             soup.find("main") or
             soup
         )
@@ -204,11 +291,11 @@ def extract_article_content(url: str, source: str = "") -> str:
         paragraphs = []
         for p in container.find_all("p"):
             classes = " ".join(p.get("class", [])) if isinstance(p.get("class"), list) else (p.get("class") or "")
-            if re.search(r"(ad|promo|social|author|caption|copyright|disclaimer)", classes, re.I):
+            if _RE_AD_PROMO.search(classes):
                 continue
 
             text = p.get_text(" ", strip=True)
-            if len(text) > 25 and not re.search(r"^(also read|read also|click here|subscribe|advertisement|follow us|download the app|disclaimer:|copyright|photo:)", text, re.I):
+            if len(text) > 25 and not _RE_DISCARD_STARTS.search(text):
                 paragraphs.append(text)
 
         content = " ".join(paragraphs[:6]).strip()
@@ -220,25 +307,34 @@ def extract_article_content(url: str, source: str = "") -> str:
                 content = meta["content"].strip()
 
         return content
-    except Exception:
+    except Exception as e:
+        logger.debug("Failed extracting content from %s: %s", url, e)
         return ""
 
 
-def scrape_news(lang: str = "en", limit: int = 25):
+def scrape_news(lang: str = "en", limit: int = 25) -> List[Dict[str, str]]:
     """
     Scrapes major headlines from Google News (India English or Malayalam).
     Extracts article content dynamically across news portals in parallel.
     """
+    start_time = time.time()
     news_data = []
+
     if lang == "ml":
         rss_url = "https://news.google.com/rss?hl=ml&gl=IN&ceid=IN%3Aml"
     else:
         rss_url = "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en"
 
-    d = feedparser.parse(rss_url)
-    entries = d.entries[:limit] if hasattr(d, "entries") else d.get("items", [])[:limit]
+    logger.info("Fetching RSS feed for language: %s (%s)", lang, rss_url)
+    try:
+        d = feedparser.parse(rss_url)
+        entries = d.entries[:limit] if hasattr(d, "entries") else d.get("items", [])[:limit]
+        logger.info("Retrieved %d RSS entries for %s", len(entries), lang)
+    except Exception as e:
+        logger.error("Error parsing Google News RSS feed for %s: %s", lang, e)
+        return []
 
-    def _process_entry(item):
+    def _process_entry(item: Dict[str, Any]) -> Optional[Dict[str, str]]:
         raw_title = item.get("title", "")
         parts = raw_title.rsplit("-", 1)
         title = parts[0].strip() if len(parts) > 1 else raw_title.strip()
@@ -253,20 +349,10 @@ def scrape_news(lang: str = "en", limit: int = 25):
 
         description = extract_article_content(link, source=source)
 
-        # Strip known anti-scraper / paywall placeholder text → fall back to RSS
-        _GARBAGE = re.compile(
-            r"(please enable js|disable any ad.?blocker"
-            r"|you don.t have any active subscription|account subscription benefits"
-            r"|share your thoughts in the comments|be respectful.*?community guidelines"
-            r"|toi community guidelines|unlock these with subscription"
-            r"|need help with your subscription)",
-            re.I | re.DOTALL,
-        )
-
         def _clean_desc(txt: str) -> str:
             if not txt:
                 return txt
-            cleaned = _GARBAGE.sub("", txt).strip()
+            cleaned = _RE_GARBAGE.sub("", txt).strip()
             return cleaned if len(cleaned) >= 30 else ""
 
         description = _clean_desc(description)
@@ -285,7 +371,7 @@ def scrape_news(lang: str = "en", limit: int = 25):
             "description": description
         }
 
-    with ThreadPoolExecutor(max_workers=6) as executor:
+    with ThreadPoolExecutor(max_workers=SCRAPER_MAX_WORKERS, thread_name_prefix=f"scraper-{lang}") as executor:
         futures = [executor.submit(_process_entry, entry) for entry in entries]
         for f in as_completed(futures):
             try:
@@ -293,7 +379,8 @@ def scrape_news(lang: str = "en", limit: int = 25):
                 if res and res.get("title"):
                     news_data.append(res)
             except Exception as e:
-                print(f"Error scraping entry: {e}")
+                logger.warning("Error scraping entry: %s", e)
 
-    print(f"Successfully scraped {len(news_data)} {lang} news articles.")
+    elapsed = time.time() - start_time
+    logger.info("Successfully scraped %d %s news articles in %.2fs", len(news_data), lang, elapsed)
     return news_data
