@@ -143,7 +143,7 @@ export default function MalayalamNewsPage() {
           >
             ← India National
           </Link>
-          <span className="text-[11px] font-mono uppercase tracking-wider text-white font-bold bg-[#8a2435] px-2.5 py-1 border border-[#9b2b3f]/60 rounded-full">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-white font-bold bg-[#9e3547] px-2.5 py-1 border border-[#b03d52]/60 rounded-full">
             മലയാളം
           </span>
           <button
@@ -159,7 +159,7 @@ export default function MalayalamNewsPage() {
         {/* Non-blocking sync indicator */}
         {isSyncing && (
           <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-900 border border-white/10 text-[10px] font-mono text-zinc-300">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8a2435] animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#9e3547] animate-pulse" />
             <span className="hidden sm:inline">അപ്‌ഡേറ്റ് ചെയ്യുന്നു...</span>
             <span className="sm:hidden">Syncing</span>
           </div>
@@ -177,7 +177,7 @@ export default function MalayalamNewsPage() {
       {/* Initial load only if NO cached articles exist */}
       {loading && articles.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 text-center z-10">
-          <div className="w-8 h-8 border-2 border-white/20 border-t-[#8a2435] rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-white/20 border-t-[#9e3547] rounded-full animate-spin" />
           <p className="text-xs font-mono text-zinc-400 tracking-wider">
             വാർത്തകൾ ശേഖരിക്കുന്നു...
           </p>
