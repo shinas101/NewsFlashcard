@@ -127,3 +127,4 @@ class BaseSiteScraper(ABC):
     def extract(self, soup: BeautifulSoup, url: str = "") -> Optional[str]:
         """Extract main article body from the parsed HTML tree."""
         raise NotImplementedError
+

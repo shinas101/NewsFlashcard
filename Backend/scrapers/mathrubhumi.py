@@ -32,3 +32,4 @@ class MathrubhumiScraper(BaseSiteScraper):
         except Exception as e:
             logger.debug("Mathrubhumi extraction failed: %s", e)
         return None
+

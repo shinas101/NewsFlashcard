@@ -33,3 +33,4 @@ class ManoramaScraper(BaseSiteScraper):
         except Exception as e:
             logger.debug("Manorama extraction failed: %s", e)
         return None
+

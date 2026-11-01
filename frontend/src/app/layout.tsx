@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "മലയാളം ഫ്ലാഷ് ന്യൂസ് | Malayalam Flash News Dashboard",
-  description: "Swiss Style & Neo-Brutalist snap-scrolling Flash Cards summarizing Malayalam headlines.",
+  title: "NewsFlipcard",
+  description: "Tactile 3D card-stack news reader delivering concise, AI-summarized headlines in English and Malayalam.",
 };
 
 export default function RootLayout({

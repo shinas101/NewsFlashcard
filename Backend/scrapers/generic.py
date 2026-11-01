@@ -77,3 +77,4 @@ class GenericScraper(BaseSiteScraper):
         except Exception as e:
             logger.debug("Generic extraction failed: %s", e)
             return None
+

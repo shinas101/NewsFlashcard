@@ -163,3 +163,4 @@ def fetch_google_news_feed(lang: str = "en", limit: int = 25) -> List[Dict[str, 
     except Exception as e:
         logger.error("Error parsing Google News RSS feed for %s: %s", lang, e)
         return []
+

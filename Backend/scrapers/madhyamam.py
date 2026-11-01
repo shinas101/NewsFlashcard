@@ -36,3 +36,4 @@ class MadhyamamScraper(BaseSiteScraper):
         except Exception as e:
             logger.debug("Madhyamam extraction failed: %s", e)
         return None
+

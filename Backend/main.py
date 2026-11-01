@@ -29,13 +29,13 @@ logger = logging.getLogger("main")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting Flash News API server on port %d...", PORT)
+    logger.info("Starting NewsFlipcard API server on port %d...", PORT)
     yield
-    logger.info("Shutting down Flash News API server...")
+    logger.info("Shutting down NewsFlipcard API server...")
 
 
 app = FastAPI(
-    title="Flash News API",
+    title="NewsFlipcard API",
     version="2.0.0",
     lifespan=lifespan
 )

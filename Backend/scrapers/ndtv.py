@@ -46,3 +46,4 @@ class NDTVScraper(BaseSiteScraper):
         except Exception as e:
             logger.debug("NDTV extraction failed: %s", e)
         return None
+

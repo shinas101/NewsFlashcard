@@ -52,3 +52,4 @@ class TheHinduScraper(BaseSiteScraper):
         except Exception as e:
             logger.debug("The Hindu extraction failed: %s", e)
         return None
+

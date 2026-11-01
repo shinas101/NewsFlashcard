@@ -36,3 +36,4 @@ class News18Scraper(BaseSiteScraper):
         except Exception as e:
             logger.debug("News18 extraction failed: %s", e)
         return None
+

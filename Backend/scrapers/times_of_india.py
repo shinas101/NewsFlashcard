@@ -49,3 +49,4 @@ class TimesOfIndiaScraper(BaseSiteScraper):
         except Exception as e:
             logger.debug("Times of India extraction failed: %s", e)
         return None
+

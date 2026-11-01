@@ -67,3 +67,4 @@ class IndianExpressScraper(BaseSiteScraper):
         except Exception as e:
             logger.debug("Indian Express extraction failed: %s", e)
         return None
+

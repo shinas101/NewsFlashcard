@@ -33,3 +33,4 @@ class AsianetScraper(BaseSiteScraper):
         except Exception as e:
             logger.debug("Asianet extraction failed: %s", e)
         return None
+
