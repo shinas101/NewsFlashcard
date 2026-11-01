@@ -47,14 +47,16 @@ export default function Home() {
     setError(null);
 
     try {
-      const endpoints = [
-        "/api/news?lang=en",
-        "/api/news",
-        "http://127.0.0.1:8000/api/news?lang=en",
-        "http://127.0.0.1:8000/api/news",
-        "http://127.0.0.1:8001/api/news?lang=en",
-        "http://127.0.0.1:8001/api/news",
-      ];
+      const isLocalhost =
+        typeof window !== "undefined" &&
+        (window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1");
+
+      const endpoints = ["/api/news?lang=en", "/api/news"];
+      if (isLocalhost) {
+        endpoints.push("http://127.0.0.1:8000/api/news?lang=en");
+        endpoints.push("http://127.0.0.1:8000/api/news");
+      }
 
       let data: any = null;
       for (const endpoint of endpoints) {

@@ -144,11 +144,16 @@ export const NewsFlipCard = forwardRef<NewsFlipCardHandle, NewsFlipCardProps>(fu
       const cleanBase = apiBaseUrl.replace(/\/+$/, "");
       endpointsToTry.push(`${cleanBase}/${endpoint}`);
     } else {
-      if (typeof window !== "undefined" && window.location.origin) {
-        endpointsToTry.push(`/api/${endpoint}`);
+      endpointsToTry.push(`/api/${endpoint}`);
+
+      const isLocalhost =
+        typeof window !== "undefined" &&
+        (window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1");
+
+      if (isLocalhost) {
+        endpointsToTry.push(`http://127.0.0.1:8000/api/${endpoint}`);
       }
-      endpointsToTry.push(`http://127.0.0.1:8001/${endpoint}`);
-      endpointsToTry.push(`http://127.0.0.1:8000/${endpoint}`);
     }
 
     let successData: any = null;

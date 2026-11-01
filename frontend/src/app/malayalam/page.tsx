@@ -47,14 +47,16 @@ export default function MalayalamNewsPage() {
     setError(null);
 
     try {
-      const endpoints = [
-        "/api/news?lang=ml",
-        "/api/malayalam",
-        "http://127.0.0.1:8000/api/news?lang=ml",
-        "http://127.0.0.1:8000/api/malayalam",
-        "http://127.0.0.1:8001/api/news?lang=ml",
-        "http://127.0.0.1:8001/api/malayalam",
-      ];
+      const isLocalhost =
+        typeof window !== "undefined" &&
+        (window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1");
+
+      const endpoints = ["/api/news?lang=ml", "/api/malayalam"];
+      if (isLocalhost) {
+        endpoints.push("http://127.0.0.1:8000/api/news?lang=ml");
+        endpoints.push("http://127.0.0.1:8000/api/malayalam");
+      }
 
       let data: any = null;
       for (const endpoint of endpoints) {
