@@ -384,3 +384,4 @@ def scrape_news(lang: str = "en", limit: int = 25) -> List[Dict[str, str]]:
     elapsed = time.time() - start_time
     logger.info("Successfully scraped %d %s news articles in %.2fs", len(news_data), lang, elapsed)
     return news_data
+

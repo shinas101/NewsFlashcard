@@ -110,3 +110,4 @@ def summarize_news(news_data: List[Dict[str, Any]]) -> List[Dict[str, str]]:
         })
     logger.info("Summarized %d articles via extractive algorithm.", len(summaries))
     return summaries
+

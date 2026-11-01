@@ -18,3 +18,4 @@ __all__ = [
     "get_base64_str",
     "fetch_page_html",
 ]
+

@@ -239,3 +239,4 @@ def summarize_with_t5(
     total_elapsed = time.time() - pipeline_start
     logger.info("Summarization pipeline completed for %d articles in %.2fs.", len(news_data), total_elapsed)
     return results
+

@@ -194,3 +194,4 @@ def get_final_news(lang: str = "en", force_refresh: bool = False) -> Dict[str, A
     # First time ever cold run (nothing in cache): build initial feed
     logger.info("Cold cache run for '%s': executing initial build synchronously.", lang)
     return _build_news_pipeline(lang=lang)
+

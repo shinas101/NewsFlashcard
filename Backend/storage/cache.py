@@ -225,3 +225,4 @@ def generate_news_hash(news_data: Union[str, List[Any], Dict[str, Any]]) -> str:
         text = str(news_data)
 
     return hashlib.md5(text.encode("utf-8")).hexdigest()
+

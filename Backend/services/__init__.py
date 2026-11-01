@@ -10,3 +10,4 @@ __all__ = [
     "trigger_background_refresh",
     "normalize_title",
 ]
+

@@ -18,7 +18,9 @@ __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
-Backend/redis_cache.db
+Backend/redis_cache.db*
+*.db-shm
+*.db-wal
 *.log
 
 # Environment variables
