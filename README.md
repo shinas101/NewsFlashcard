@@ -119,9 +119,21 @@ news-flipcard/
 ├── Backend/                      # FastAPI Python Application
 │   ├── main.py                   # App entrypoint, middleware, static SPA router
 │   ├── config.py                 # Central configuration and environment constants
-│   ├── scrapers/                 # News fetching engines
-│   │   ├── __init__.py
-│   │   └── news_scraper.py       # Session-pooled multi-source HTML scraper
+│   ├── scrapers/                 # Specialized & modular news scraping package
+│   │   ├── __init__.py           # Package re-exports and registry
+│   │   ├── base.py               # Session pooling, headers, cleaners & BaseSiteScraper
+│   │   ├── google_news.py        # Google News feed fetcher & batchexecute URL decoder
+│   │   ├── manorama.py           # Manorama Online scraper
+│   │   ├── mathrubhumi.py        # Mathrubhumi scraper
+│   │   ├── asianet.py            # Asianet News Malayalam scraper
+│   │   ├── news18.py             # News18 Malayalam scraper
+│   │   ├── madhyamam.py          # Madhyamam scraper
+│   │   ├── the_hindu.py          # The Hindu scraper
+│   │   ├── times_of_india.py     # The Times of India scraper
+│   │   ├── ndtv.py               # NDTV scraper
+│   │   ├── indian_express.py     # The Indian Express scraper
+│   │   ├── generic.py            # JSON-LD & OpenGraph multi-source fallback
+│   │   └── news_scraper.py       # High-level parallel orchestrator
 │   ├── services/                 # Core domain logic
 │   │   ├── __init__.py
 │   │   └── news_service.py       # SWR orchestrator, title normalizer, background tasks
@@ -255,3 +267,4 @@ Returns system uptime, cache status, and ML model availability.
 ## 📜 License
 
 This project is licensed under the [MIT License](LICENSE).
+
