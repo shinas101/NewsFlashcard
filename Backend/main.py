@@ -75,9 +75,10 @@ def health():
 
 @app.get("/news")
 @app.get("/api/news")
-def news(refresh: bool = False):
-    """Major Indian News Feed (English / National)"""
-    return get_final_news(lang="en", force_refresh=refresh)
+def news(lang: str = "en", refresh: bool = False):
+    """News Feed API Endpoint (supports ?lang=en and ?lang=ml)"""
+    target_lang = "ml" if lang.lower() in ("ml", "malayalam") else "en"
+    return get_final_news(lang=target_lang, force_refresh=refresh)
 
 
 @app.get("/api/malayalam")

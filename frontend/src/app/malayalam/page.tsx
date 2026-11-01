@@ -32,8 +32,17 @@ export default function MalayalamNewsPage() {
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setArticles(parsed);
-          setLoading(false);
+          // Ensure cached data contains actual Malayalam text
+          const hasMalayalam = parsed.some(
+            (a) => /[\u0D00-\u0D7F]/.test(a.title || "") || /[\u0D00-\u0D7F]/.test(a.summary || "")
+          );
+          if (hasMalayalam) {
+            setArticles(parsed);
+            setLoading(false);
+          } else {
+            // Purge corrupted/English entries from Malayalam cache
+            localStorage.removeItem(STORAGE_KEY);
+          }
         }
       }
     } catch (_) {}
@@ -52,10 +61,10 @@ export default function MalayalamNewsPage() {
         (window.location.hostname === "localhost" ||
           window.location.hostname === "127.0.0.1");
 
-      const endpoints = ["/api/news?lang=ml", "/api/malayalam"];
+      const endpoints = ["/api/malayalam", "/api/news?lang=ml"];
       if (isLocalhost) {
-        endpoints.push("http://127.0.0.1:8000/api/news?lang=ml");
         endpoints.push("http://127.0.0.1:8000/api/malayalam");
+        endpoints.push("http://127.0.0.1:8000/api/news?lang=ml");
       }
 
       let data: any = null;
@@ -66,9 +75,16 @@ export default function MalayalamNewsPage() {
           });
           const contentType = res.headers.get("content-type") || "";
           if (res.ok && contentType.includes("application/json")) {
-            data = await res.json();
-            if (data && Array.isArray(data.news) && data.news.length > 0) {
-              break;
+            const candidate = await res.json();
+            if (candidate && Array.isArray(candidate.news) && candidate.news.length > 0) {
+              // Verify that the news list is Malayalam
+              const isMl = candidate.news.some(
+                (a: any) => /[\u0D00-\u0D7F]/.test(a.title || "") || /[\u0D00-\u0D7F]/.test(a.summary || "")
+              );
+              if (isMl) {
+                data = candidate;
+                break;
+              }
             }
           }
         } catch (_) {
