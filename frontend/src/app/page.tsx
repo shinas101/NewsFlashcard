@@ -47,21 +47,32 @@ export default function Home() {
     setError(null);
 
     try {
-      let res: Response;
-      try {
-        res = await fetch("/api/news");
-        if (!res.ok) throw new Error();
-      } catch {
+      const endpoints = [
+        "/api/news?lang=en",
+        "/api/news",
+        "http://127.0.0.1:8000/api/news?lang=en",
+        "http://127.0.0.1:8000/api/news",
+        "http://127.0.0.1:8001/api/news?lang=en",
+        "http://127.0.0.1:8001/api/news",
+      ];
+
+      let data: any = null;
+      for (const endpoint of endpoints) {
         try {
-          res = await fetch("http://127.0.0.1:8001/news");
-          if (!res.ok) throw new Error();
-        } catch {
-          res = await fetch("http://127.0.0.1:8000/news");
-          if (!res.ok) throw new Error();
+          const res = await fetch(endpoint, {
+            headers: { Accept: "application/json" },
+          });
+          const contentType = res.headers.get("content-type") || "";
+          if (res.ok && contentType.includes("application/json")) {
+            data = await res.json();
+            if (data && Array.isArray(data.news) && data.news.length > 0) {
+              break;
+            }
+          }
+        } catch (_) {
+          continue;
         }
       }
-
-      const data = await res.json();
       if (data && Array.isArray(data.news) && data.news.length > 0) {
         const incomingNews: NewsArticle[] = data.news;
 

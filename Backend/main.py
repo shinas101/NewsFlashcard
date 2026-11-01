@@ -111,7 +111,7 @@ if os.path.exists(FRONTEND_OUT):
     @app.get("/malayalam")
     def serve_malayalam(request: Request, refresh: bool = False):
         accept = request.headers.get("accept", "")
-        if "application/json" in accept:
+        if "application/json" in accept or request.query_params.get("format") == "json":
             return get_final_news(lang="ml", force_refresh=refresh)
         html_file = os.path.join(FRONTEND_OUT, "malayalam.html")
         if os.path.exists(html_file):

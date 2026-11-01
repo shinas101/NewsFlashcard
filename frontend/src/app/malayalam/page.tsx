@@ -47,21 +47,32 @@ export default function MalayalamNewsPage() {
     setError(null);
 
     try {
-      let res: Response;
-      try {
-        res = await fetch("/api/malayalam");
-        if (!res.ok) throw new Error();
-      } catch {
+      const endpoints = [
+        "/api/news?lang=ml",
+        "/api/malayalam",
+        "http://127.0.0.1:8000/api/news?lang=ml",
+        "http://127.0.0.1:8000/api/malayalam",
+        "http://127.0.0.1:8001/api/news?lang=ml",
+        "http://127.0.0.1:8001/api/malayalam",
+      ];
+
+      let data: any = null;
+      for (const endpoint of endpoints) {
         try {
-          res = await fetch("http://127.0.0.1:8001/malayalam");
-          if (!res.ok) throw new Error();
-        } catch {
-          res = await fetch("http://127.0.0.1:8000/malayalam");
-          if (!res.ok) throw new Error();
+          const res = await fetch(endpoint, {
+            headers: { Accept: "application/json" },
+          });
+          const contentType = res.headers.get("content-type") || "";
+          if (res.ok && contentType.includes("application/json")) {
+            data = await res.json();
+            if (data && Array.isArray(data.news) && data.news.length > 0) {
+              break;
+            }
+          }
+        } catch (_) {
+          continue;
         }
       }
-
-      const data = await res.json();
       if (data && Array.isArray(data.news) && data.news.length > 0) {
         const incomingNews: NewsArticle[] = data.news;
 

@@ -158,9 +158,13 @@ export const NewsFlipCard = forwardRef<NewsFlipCardHandle, NewsFlipCardProps>(fu
         const res = await fetch(url, {
           headers: { Accept: "application/json" },
         });
-        if (res.ok) {
-          successData = await res.json();
-          break;
+        const contentType = res.headers.get("content-type") || "";
+        if (res.ok && contentType.includes("application/json")) {
+          const parsed = await res.json();
+          if (parsed && Array.isArray(parsed.news) && parsed.news.length > 0) {
+            successData = parsed;
+            break;
+          }
         }
       } catch (_) {
         // Try next endpoint fallback
