@@ -87,10 +87,10 @@ export default function MyPage() {
             </div>
             <div>
               <h3 className="text-base font-bold text-white tracking-tight">
-                Embed on External Website
+                Embed this feed
               </h3>
               <p className="text-xs text-zinc-400">
-                Drop this card deck onto any website, blog, or CMS
+                Add these news cards to your site.
               </p>
             </div>
           </div>
@@ -171,8 +171,8 @@ export default function MyPage() {
           {/* Auto advance toggle */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-950/60 border border-zinc-800">
             <div>
-              <span className="text-xs font-medium text-white block">Auto-Advance Cards</span>
-              <span className="text-[11px] text-zinc-400">Cards cycle automatically every 5 seconds</span>
+              <span className="text-xs font-medium text-white block">Advance cards automatically</span>
+              <span className="text-[11px] text-zinc-400">Show the next card every 5 seconds.</span>
             </div>
             <button
               type="button"
@@ -235,7 +235,7 @@ export default function MyPage() {
               {copied ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400">Copied!</span>
+                  <span className="text-emerald-400">Copied</span>
                 </>
               ) : (
                 <>
@@ -248,14 +248,14 @@ export default function MyPage() {
 
           {/* Preview Link */}
           <div className="flex items-center justify-between text-xs text-zinc-400 pt-1">
-            <span>Test preview standalone:</span>
+            <span>Preview the embed</span>
             <a
               href={embedUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-[#e67385] hover:underline"
             >
-              <span>Open /embed</span>
+              <span>Open preview</span>
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>
@@ -263,16 +263,15 @@ export default function MyPage() {
 
         {/* Footer */}
         <div className="px-6 py-3 bg-zinc-950/80 border-t border-zinc-800 text-[11px] text-zinc-400 flex items-center justify-between">
-          <span>Works on WordPress, Shopify, Webflow, React, Vue, PHP, HTML</span>
+          <span>Add it to a WordPress, Shopify, Webflow, React, Vue, PHP, or HTML site.</span>
           <button
             onClick={onClose}
             className="px-4 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white font-medium transition-colors cursor-pointer"
           >
-            Done
+            Close
           </button>
         </div>
       </div>
     </div>
   );
 }
-

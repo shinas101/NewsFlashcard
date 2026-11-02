@@ -9,6 +9,7 @@ export interface NewsArticle {
   link: string;
   summary: string;
   description?: string;
+  category?: string;
 }
 
 export interface NewsFlipCardProps {
@@ -192,7 +193,7 @@ export const NewsFlipCard = forwardRef<NewsFlipCardHandle, NewsFlipCardProps>(fu
             } catch (_) {}
 
             if (prev.length > 0) {
-              setToast(isMalayalam ? "വാർത്തകൾ അപ്‌ഡേറ്റ് ചെയ്തു" : "Feed updated with latest news");
+              setToast(isMalayalam ? "വാർത്തകൾ അപ്‌ഡേറ്റ് ചെയ്തു" : "New headlines are in.");
               setTimeout(() => setToast(null), 2800);
             }
             return incomingNews;
@@ -211,7 +212,7 @@ export const NewsFlipCard = forwardRef<NewsFlipCardHandle, NewsFlipCardProps>(fu
       }
     } catch (err: any) {
       if (articles.length === 0) {
-        setError(isMalayalam ? "വാർത്തകൾ ലോഡ് ചെയ്യുമ്പോൾ പിശക് സംഭവിച്ചു" : "Failed to load news feed. Please retry.");
+        setError(isMalayalam ? "വാർത്തകൾ ലോഡ് ചെയ്യുമ്പോൾ പിശക് സംഭവിച്ചു" : "Can't load news right now. Try again.");
       }
     } finally {
       setLoading(false);
@@ -250,6 +251,7 @@ export const NewsFlipCard = forwardRef<NewsFlipCardHandle, NewsFlipCardProps>(fu
       summary: article.summary || article.description || "",
       link: article.link,
       description: article.description,
+      category: article.category,
     }));
   }, [articles]);
 
@@ -318,4 +320,3 @@ export const NewsFlipCard = forwardRef<NewsFlipCardHandle, NewsFlipCardProps>(fu
 });
 
 export default NewsFlipCard;
-

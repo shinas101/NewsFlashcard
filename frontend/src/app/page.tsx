@@ -12,6 +12,7 @@ interface NewsArticle {
   link: string;
   summary: string;
   description?: string;
+  category?: string;
 }
 
 const STORAGE_KEY = "news_cache_v2_en";
@@ -91,7 +92,7 @@ export default function Home() {
             } catch (_) {}
 
             if (prev.length > 0) {
-              setToast("Feed updated with latest headlines");
+              setToast("New headlines are in.");
               setTimeout(() => setToast(null), 2800);
             }
             return incomingNews;
@@ -112,7 +113,7 @@ export default function Home() {
     } catch (err: any) {
       console.error("Fetch error:", err);
       if (articles.length === 0) {
-        setError("Failed to load news feed. Please retry.");
+        setError("Can't load the news right now. Try again.");
       }
     } finally {
       setLoading(false);
@@ -143,6 +144,7 @@ export default function Home() {
       summary: article.summary || article.description || "",
       link: article.link,
       description: article.description,
+      category: article.category,
     }));
   }, [articles]);
 
@@ -174,8 +176,8 @@ export default function Home() {
         {isSyncing && (
           <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-900 border border-white/10 text-[10px] font-mono text-zinc-300">
             <span className="w-1.5 h-1.5 rounded-full bg-[#9e3547] animate-pulse" />
-            <span className="hidden sm:inline">Checking updates...</span>
-            <span className="sm:hidden">Syncing</span>
+            <span className="hidden sm:inline">Updating the feed...</span>
+            <span className="sm:hidden">Updating</span>
           </div>
         )}
       </div>
@@ -193,7 +195,7 @@ export default function Home() {
         <div className="flex flex-col items-center justify-center gap-3 text-center z-10">
           <div className="w-8 h-8 border-2 border-white/20 border-t-[#9e3547] rounded-full animate-spin" />
           <p className="text-xs font-mono text-zinc-400 tracking-wider">
-            Loading Headlines...
+            Loading news...
           </p>
         </div>
       ) : error && articles.length === 0 ? (

@@ -119,7 +119,7 @@ function SourceBadge({ source, link, size = "sm" }: { source?: string; link?: st
     : "text-[10px] sm:text-[11px]";
 
   return (
-    <span className={`inline-flex items-center gap-1.5 font-mono tracking-wider text-black/80 uppercase font-semibold ${textClass}`}>
+    <span className={`csw-source inline-flex items-center gap-1.5 font-mono tracking-wider text-black/80 uppercase font-semibold ${textClass}`}>
       {logoUrl && imgOk && (
         <img
           src={logoUrl}
@@ -130,7 +130,7 @@ function SourceBadge({ source, link, size = "sm" }: { source?: string; link?: st
           onError={() => setImgOk(false)}
         />
       )}
-      <span>{source || "FLASH NEWS"}</span>
+      <span>{source || "NEWS"}</span>
     </span>
   );
 }
@@ -143,7 +143,77 @@ export type Card = {
   summary?: string;
   link?: string;
   description?: string;
+  category?: string;
 };
+
+const CARD_THEMES = [
+  "minimal",
+  "neo-brutalist",
+  "y2k",
+  "swiss",
+  "desi-maximalist",
+  "dark-academia",
+  "cyberpunk",
+  "noir",
+  "bauhaus",
+  "memphis",
+  "art-deco",
+  "aurora",
+  "art-nouveau",
+  "bento",
+  "baroque",
+] as const;
+
+type CardTheme = (typeof CARD_THEMES)[number];
+
+const TOPIC_THEME_STARTS: { keywords: RegExp; index: number }[] = [
+  { keywords: /\b(politic\w*|government|election\w*|parliament|court|law|crime|protest\w*|war|conflict|attack\w*|policy)\b/i, index: 13 },
+  { keywords: /\b(business|finance|market\w*|econom\w*|stock\w*|bank\w*|trade|rupee|investment\w*|tax\w*)\b/i, index: 8 },
+  { keywords: /\b(technology|tech|artificial intelligence|startup\w*|digital|smartphone\w*|cyber\w*|software|space|science|research)\b/i, index: 6 },
+  { keywords: /\b(health|wellness|hospital\w*|doctor\w*|medical|environment|climate|nature|conservation)\b/i, index: 12 },
+  { keywords: /\b(entertainment|cinema|film|movie\w*|music|celebrity|gaming|sport\w*|cricket|football|fashion)\b/i, index: 2 },
+  { keywords: /[\u0900-\u097f\u0d00-\u0d7f]/, index: 4 },
+];
+
+const CARD_THEME_GLYPHS: Record<CardTheme, string> = {
+  minimal: "—",
+  "neo-brutalist": "✳",
+  y2k: "✦",
+  swiss: "01",
+  "desi-maximalist": "✺",
+  "dark-academia": "❧",
+  cyberpunk: "⌁",
+  noir: "◉",
+  bauhaus: "◢",
+  memphis: "✹",
+  "art-deco": "✧",
+  aurora: "◌",
+  "art-nouveau": "❧",
+  bento: "▦",
+  baroque: "❦",
+};
+
+function getCardTheme(card: Card, index: number): CardTheme {
+  const content = `${card.category || ""} ${card.title} ${card.summary || card.description || ""}`;
+  const topicStart = TOPIC_THEME_STARTS.find(({ keywords }) => keywords.test(content))?.index || 0;
+  return CARD_THEMES[(topicStart + index) % CARD_THEMES.length];
+}
+
+function getCardThemes(cards: Card[]): CardTheme[] {
+  const themes: CardTheme[] = [];
+  cards.forEach((card, index) => {
+    let theme = getCardTheme(card, index);
+    if (themes.length < CARD_THEMES.length) {
+      while (themes.includes(theme)) {
+        theme = CARD_THEMES[(CARD_THEMES.indexOf(theme) + 1) % CARD_THEMES.length];
+      }
+    } else if (theme === themes[index - 1]) {
+      theme = CARD_THEMES[(CARD_THEMES.indexOf(theme) + 1) % CARD_THEMES.length];
+    }
+    themes.push(theme);
+  });
+  return themes;
+}
 
 const CARDS: Card[] = [
   { id: "mount", title: "Mountain", src: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80" },
@@ -187,6 +257,7 @@ export const CardSwap = forwardRef<CardSwapHandle, CardSwapProps>(function CardS
   ref
 ) {
   const activeCards = cards && cards.length > 0 ? cards : CARDS;
+  const cardThemes = getCardThemes(activeCards);
   const [order, setOrder] = useState<string[]>(() => activeCards.map((c) => c.id));
   const [windowDimensions, setWindowDimensions] = useState({ width: 680, height: 700 });
   const exitingIdsRef = useRef<Set<string>>(new Set());
@@ -493,10 +564,10 @@ export const CardSwap = forwardRef<CardSwapHandle, CardSwapProps>(function CardS
       >
         <div className="w-8 h-0.5 bg-black mx-auto mb-4" />
         <h3 className="text-xl sm:text-2xl font-bold text-black tracking-tight mb-2">
-          All Headlines Caught Up
+          You're all caught up.
         </h3>
         <p className="text-xs font-mono font-medium text-black/75 mb-6">
-          You have read all {activeCards.length} headlines in this edition.
+          You read all {activeCards.length} stories.
         </p>
         <button
           onClick={handleReset}
@@ -544,6 +615,7 @@ export const CardSwap = forwardRef<CardSwapHandle, CardSwapProps>(function CardS
                 }}
                 className="csw-card"
                 data-front={front || undefined}
+                data-card-theme={c.summary || c.source ? cardThemes[originalIndex] : undefined}
                 style={{
                   zIndex: activeCards.length - k,
                   ["--t" as string]: slot(Math.max(0, k)),
@@ -562,27 +634,48 @@ export const CardSwap = forwardRef<CardSwapHandle, CardSwapProps>(function CardS
                 {c.summary || c.source ? (
                   /* News Card Content */
                   <div className="csw-news-inner select-none relative flex flex-col justify-between h-full p-4 sm:p-6 text-black">
+                    <span className="csw-card-art" aria-hidden="true">
+                      {CARD_THEME_GLYPHS[cardThemes[originalIndex]]}
+                    </span>
                     {/* Header: source badge & card stack indicator */}
-                    <div className="flex items-center justify-between border-b border-black/15 pb-2.5">
+                    <div className="csw-card-header flex items-center justify-between border-b border-black/15 pb-2.5">
                       <SourceBadge source={c.source} link={c.link} size="sm" />
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-sm bg-black/10 border border-black/15 text-black/75 font-bold tracking-wider">
+                      <span className="csw-card-counter text-[10px] font-mono px-2 py-0.5 rounded-sm bg-black/10 border border-black/15 text-black/75 font-bold tracking-wider">
                         {cardNum} / {activeCards.length}
                       </span>
                     </div>
 
                     {/* Headline & Summary */}
-                    <div className="flex-1 my-2.5 sm:my-3.5 flex flex-col justify-start overflow-hidden pr-1 pointer-events-none">
-                      <h2 className="text-base sm:text-lg md:text-xl font-bold leading-snug text-black tracking-tight mb-2 break-words">
+                    <div className="flex-1 min-h-0 my-2.5 sm:my-3.5 flex flex-col justify-start pr-1 pointer-events-none">
+                      {c.category && <span className="csw-card-kicker">{c.category}</span>}
+                      <h2
+                        className="csw-card-title flex-shrink-0 text-base sm:text-lg md:text-xl font-bold leading-snug text-black tracking-tight mb-2 break-words"
+                        data-headline-length={
+                          c.title.length > 180
+                            ? "extra-long"
+                            : c.title.length > 120
+                              ? "long"
+                              : undefined
+                        }
+                      >
                         {c.title}
                       </h2>
-                      <div className="w-8 h-0.5 bg-black/40 mb-2.5 flex-shrink-0" />
-                      <p className="text-xs sm:text-sm leading-relaxed text-black/85 font-medium line-clamp-6 sm:line-clamp-4">
+                      <div className="csw-card-rule w-8 h-0.5 bg-black/40 mb-2.5 flex-shrink-0" />
+                      <p
+                        className={`csw-card-summary flex-1 min-h-0 overflow-hidden text-xs sm:text-sm leading-relaxed text-black/85 font-medium ${
+                          c.title.length > 180
+                            ? "line-clamp-1"
+                            : c.title.length > 120
+                              ? "line-clamp-2"
+                              : "line-clamp-6 sm:line-clamp-4"
+                        }`}
+                      >
                         {c.summary || c.description}
                       </p>
                     </div>
 
                     {/* Footer CTA */}
-                    <div className="flex items-center justify-end pt-2.5 border-t border-black/15">
+                    <div className="csw-card-footer flex items-center justify-end pt-2.5 border-t border-black/15">
                       {c.link && (
                         <a
                           href={c.link}
@@ -590,9 +683,9 @@ export const CardSwap = forwardRef<CardSwapHandle, CardSwapProps>(function CardS
                           rel="noopener noreferrer"
                           onPointerDown={(e) => e.stopPropagation()}
                           onClick={(e) => e.stopPropagation()}
-                          className="text-xs font-mono font-bold px-3.5 py-1.5 rounded-sm bg-black text-white hover:bg-black/85 active:scale-[0.98] transition-all flex items-center gap-1.5 pointer-events-auto tracking-wider uppercase"
+                          className="csw-card-link text-xs font-mono font-bold px-3.5 py-1.5 rounded-sm bg-black text-white hover:bg-black/85 active:scale-[0.98] transition-all flex items-center gap-1.5 pointer-events-auto tracking-wider uppercase"
                         >
-                          <span>READ FULL</span>
+                          <span>Open story</span>
                           <span className="text-xs">↗</span>
                         </a>
                       )}

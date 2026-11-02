@@ -12,6 +12,7 @@ interface NewsArticle {
   link: string;
   summary: string;
   description?: string;
+  category?: string;
 }
 
 const STORAGE_KEY = "news_cache_v2_ml";
@@ -158,6 +159,7 @@ export default function MalayalamNewsPage() {
       summary: article.summary || article.description || "",
       link: article.link,
       description: article.description,
+      category: article.category,
     }));
   }, [articles]);
 
@@ -190,7 +192,7 @@ export default function MalayalamNewsPage() {
           <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-900 border border-white/10 text-[10px] font-mono text-zinc-300">
             <span className="w-1.5 h-1.5 rounded-full bg-[#9e3547] animate-pulse" />
             <span className="hidden sm:inline">അപ്‌ഡേറ്റ് ചെയ്യുന്നു...</span>
-            <span className="sm:hidden">Syncing</span>
+            <span className="sm:hidden">Updating</span>
           </div>
         )}
       </div>
