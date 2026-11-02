@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "NewsFlipcard",
-  description: "Tactile 3D card-stack news reader delivering concise, AI-summarized headlines in English and Malayalam.",
+  description: "Read English and Malayalam headlines in a swipeable card deck.",
 };
 
 export default function RootLayout({
