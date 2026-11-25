@@ -99,7 +99,12 @@ def refresh():
 
 # --- Frontend Static Files & SPA Routing ---
 
-FRONTEND_OUT = os.path.normpath(os.path.join(BASE_DIR, "..", "frontend", "out"))
+candidate_dirs = [
+    os.path.normpath(os.path.join(BASE_DIR, "..", "frontend", "out")),
+    os.path.normpath(os.path.join(os.getcwd(), "frontend", "out")),
+    os.path.normpath(os.path.join(BASE_DIR, "frontend", "out")),
+]
+FRONTEND_OUT = next((d for d in candidate_dirs if os.path.exists(d)), candidate_dirs[0])
 
 if os.path.exists(FRONTEND_OUT):
     logger.info("Serving Next.js frontend export from %s", FRONTEND_OUT)
@@ -147,12 +152,35 @@ if os.path.exists(FRONTEND_OUT):
             return FileResponse(html_file)
         return Response(status_code=404)
 
+    @app.get("/favicon.ico")
+    def serve_favicon():
+        fav = os.path.join(FRONTEND_OUT, "favicon.ico")
+        if os.path.exists(fav):
+            return FileResponse(fav)
+        return Response(status_code=404)
+
     @app.get("/")
     def serve_home():
         html_file = os.path.join(FRONTEND_OUT, "index.html")
         if os.path.exists(html_file):
             return FileResponse(html_file)
         return {"status": "online"}
+
+    @app.get("/{file_path:path}")
+    def serve_static_fallback(file_path: str):
+        """Safely serve any additional static files or HTML routes from frontend/out."""
+        target = os.path.normpath(os.path.join(FRONTEND_OUT, file_path))
+        # Prevent directory traversal
+        try:
+            if os.path.commonpath([FRONTEND_OUT]) == os.path.commonpath([FRONTEND_OUT, target]):
+                if os.path.isfile(target):
+                    return FileResponse(target)
+                html_candidate = f"{target}.html"
+                if os.path.isfile(html_candidate):
+                    return FileResponse(html_candidate)
+        except ValueError:
+            pass
+        return Response(status_code=404)
 else:
     logger.warning("Frontend export directory not found at %s. API-only mode active.", FRONTEND_OUT)
 
